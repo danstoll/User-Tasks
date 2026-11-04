@@ -18,11 +18,11 @@
   },
   "dependencies": {
     "@supabase/postgrest-js": "^2.100.1",
-    "pg": "^8.20.0"
+    "pg": "^8.23.1"
   },
   "devDependencies": {
     "@types/node": "^20",
-    "@types/pg": "^8.20.0",
+    "@types/pg": "^8.23.1",
     "typescript": "^5"
   }
 }
