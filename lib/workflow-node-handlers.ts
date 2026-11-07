@@ -29,7 +29,7 @@ export function handleMath(config: Record<string, any>, ctx: ExpressionContext):
 export function handleModifyString(config: Record<string, any>, ctx: ExpressionContext): { input: string; operation: string; result: string; variable: string } {
   const input = String(resolveExpression(config.input, ctx) ?? "")
   const OP_ALIASES: Record<string, string> = { upper: "uppercase", lower: "lowercase" }
-  const op = OP_ALIASES[config.operation] ?? config.operation ?? "trim"
+  const op = Object.hasOwn(OP_ALIASES, config.operation) ? OP_ALIASES[config.operation] : config.operation ?? "trim"
   let result: string
   switch (op) {
     case "uppercase": result = input.toUpperCase(); break
@@ -94,12 +94,12 @@ export function handleFormatDate(config: Record<string, any>, ctx: ExpressionCon
     }
     case "custom": {
       result = (config.custom_format ?? "YYYY-MM-DD")
-        .replace("YYYY", String(d.getFullYear()))
-        .replace("MM", String(d.getMonth() + 1).padStart(2, "0"))
-        .replace("DD", String(d.getDate()).padStart(2, "0"))
-        .replace("HH", String(d.getHours()).padStart(2, "0"))
-        .replace("mm", String(d.getMinutes()).padStart(2, "0"))
-        .replace("ss", String(d.getSeconds()).padStart(2, "0"))
+        .replaceAll("YYYY", String(d.getFullYear()))
+        .replaceAll("MM", String(d.getMonth() + 1).padStart(2, "0"))
+        .replaceAll("DD", String(d.getDate()).padStart(2, "0"))
+        .replaceAll("HH", String(d.getHours()).padStart(2, "0"))
+        .replaceAll("mm", String(d.getMinutes()).padStart(2, "0"))
+        .replaceAll("ss", String(d.getSeconds()).padStart(2, "0"))
       break
     }
     default: result = d.toISOString()
@@ -367,7 +367,8 @@ export function handleJsonBuildArray(config: Record<string, any>, ctx: Expressio
   // Items are { value } objects; a plain value is also accepted.
   const items = (config.items ?? []) as unknown[]
   for (const item of items) {
-    const raw = item !== null && typeof item === 'object' && 'value' in item ? (item as { value: unknown }).value : item
+    // An object without `value` (for example an empty editor row) adds nothing.
+    const raw = item !== null && typeof item === 'object' ? (item as { value?: unknown }).value : item
     let value: any = typeof raw === 'string' ? resolveExpression(raw, ctx) : raw
     if (typeof value === 'string') {
       try { const parsed = JSON.parse(value); value = parsed } catch { /* keep as string */ }

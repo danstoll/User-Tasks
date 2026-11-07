@@ -50,7 +50,9 @@ export function getBranchLabels(node: Pick<WorkflowNode, 'type' | 'config'>): st
       const raw = (config.branches ?? []) as unknown[]
       const labels = raw.map((b) => (typeof b === 'string' ? b : labelOf(b, false))).filter(Boolean) as string[]
       // 'Done' runs once after every branch finishes (branches do not join).
-      return [...(labels.length > 0 ? labels : ['Branch 1', 'Branch 2']), 'Done']
+      // A branch that is itself named 'Done' turns the Done port off (the engine does the same).
+      const branches = labels.length > 0 ? labels : ['Branch 1', 'Branch 2']
+      return branches.some((l) => l.toLowerCase().trim() === 'done') ? branches : [...branches, 'Done']
     }
     case 'user_task': {
       const outcomes = (config.outcomes ?? []) as unknown[]

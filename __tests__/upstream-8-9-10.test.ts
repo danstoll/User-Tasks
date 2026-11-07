@@ -14,6 +14,7 @@ import { serverSigningKey } from '@/lib/server-signing-key'
 import { signResume } from '@/lib/workflow-resume-queue'
 import { executeWorkflow } from '@/lib/workflow-engine'
 import { getBranchLabels } from '@/lib/workflow-branches'
+import { handleFormatDate, handleJsonBuildArray, handleModifyString } from '@/lib/workflow-node-handlers'
 import { createFakeSupabase } from './helpers/fake-supabase'
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- node configs / fake rows */
@@ -38,13 +39,10 @@ describe('#8 serverSigningKey', () => {
     expect(signResume(target)).toMatch(/^[0-9a-f]{64}$/)
   })
 
-  it('falls back to CRON_SECRET, and is undefined with no secret at all', () => {
+  it('never uses CRON_SECRET (schedulers hold it), and is undefined without a key', () => {
     vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', '')
     vi.stubEnv('ENCRYPTION_KEY', '')
     vi.stubEnv('CRON_SECRET', 'cron')
-    const fromCron = serverSigningKey()
-    expect(fromCron).toMatch(/^[0-9a-f]{64}$/)
-    vi.stubEnv('CRON_SECRET', '')
     expect(serverSigningKey()).toBeUndefined()
     expect(() => signResume(target)).toThrow(/ENCRYPTION_KEY/)
   })
@@ -111,6 +109,29 @@ describe('engine', () => {
 
   it('#9 the editor shows a Done port after the branches', () => {
     expect(getBranchLabels({ type: 'parallel', config: { branches: [{ label: 'X' }] } } as any)).toEqual(['X', 'Done'])
+  })
+
+  it('#9 a branch named Done gets no second Done port', () => {
+    expect(getBranchLabels({ type: 'parallel', config: { branches: ['Review', 'Done'] } } as any)).toEqual(['Review', 'Done'])
+  })
+
+  it('#9 the Done step runs again with every result, when a branch reached it first', async () => {
+    const flow = parallelFlow([{ label: 'A', order: 0 }, { label: 'B', order: 1 }])
+    flow.edges.push({ id: 'e5', source: 'a', target: 'after' })
+    const r = await run(flow)
+    expect(r.error).toBeUndefined()
+    expect(r.node_results.after?.output?.logged).toBe('a=1 b=2')
+  })
+
+  it('#10 handler review fixes: repeated tokens, inherited keys, objects without value', () => {
+    const vars: Record<string, any> = {}
+    const ctx: any = { variables: vars }
+    const d = handleFormatDate({ date: '2026-11-07T10:00:00', format: 'DD/MM/YYYY - DD' }, ctx)
+    expect(d.result).toBe('07/11/2026 - 07')
+    expect(handleModifyString({ input: 'ab', operation: 'constructor' }, ctx).operation).toBe('constructor')
+    expect(handleModifyString({ input: 'ab', operation: 'upper' }, ctx).result).toBe('AB')
+    expect(handleJsonBuildArray({ items: [{ value: 'a' }, { label: 'x' }, 'b'] }, ctx).count).toBe(2)
+    expect(vars.json_array).toEqual(['a', 'b'])
   })
 
   // Files that need data tables, a decision table or a sub-workflow are left out.

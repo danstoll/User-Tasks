@@ -2577,6 +2577,28 @@ async function executeNode(
         )
         .filter(Boolean) as WorkflowEdge[];
 
+      // Branches do not join where they meet. A "Done" edge continues the
+      // run once, after every branch has finished (like a loop's Done).
+      const branchKeys = new Set(branchLabels.map((l) => l.toLowerCase().trim()));
+      const doneEdges = branchKeys.has("done")
+        ? []
+        : outEdges.filter((e) => (e.label ?? "").toLowerCase().trim() === "done");
+      // The run state does not keep the parallel step. When a branch pauses
+      // (a User Task, a wait event or a long delay), the resume continues from
+      // the paused step only, and the Done edge does not run. Log a warning.
+      const warnDoneLost = (error: unknown) => {
+        if (error instanceof PauseError && doneEdges.length > 0) {
+          ctx.logs.push({
+            node_id: node.id,
+            node_type: node.type,
+            node_label: node.label,
+            level: "warn",
+            message: `${node.label}: a branch paused at ${error.nodeId}, so the Done step will not run after the resume`,
+          });
+        }
+        throw error;
+      };
+
       if (mode === "parallel") {
         // Run all branches concurrently
         await Promise.all(
@@ -2587,7 +2609,7 @@ async function executeNode(
               await executeNode(nextNode, allNodes, allEdges, ctx);
             }
           }),
-        );
+        ).catch(warnDoneLost);
       } else {
         // Run branches sequentially in order
         for (const edge of branchEdges) {
@@ -2600,19 +2622,16 @@ async function executeNode(
               nextNode,
               "parallel_sequential",
             );
-            await executeNode(nextNode, allNodes, allEdges, ctx);
+            await executeNode(nextNode, allNodes, allEdges, ctx).catch(warnDoneLost);
           }
         }
       }
-      // Branches do not join where they meet. A "Done" edge continues the
-      // run once, after every branch has finished (like a loop's Done).
-      const branchKeys = new Set(branchLabels.map((l) => l.toLowerCase().trim()));
-      const doneEdges = branchKeys.has("done")
-        ? []
-        : outEdges.filter((e) => (e.label ?? "").toLowerCase().trim() === "done");
       for (const edge of doneEdges) {
         const nextNode = getNodeById(ctx, allNodes, edge.target);
         if (nextNode) {
+          // A branch can reach the same step first. Run it again, now with
+          // the results of every branch.
+          ctx.executedNodes.delete(nextNode.id);
           traceEdgeTraversal(ctx, edge, node, nextNode, "parallel_done");
           await executeNode(nextNode, allNodes, allEdges, ctx);
         }

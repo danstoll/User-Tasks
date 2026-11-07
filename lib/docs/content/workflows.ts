@@ -424,7 +424,7 @@ Nodes connected to the loop's body edge run for each iteration; the other edge c
 
 ## Parallel / Sequential
 
-**Parallel / Sequential** runs two or more branches. In \`parallel\` mode they start together; in \`sequential\` mode one after another. Branches do not join: when two branches reach the same step, that step runs once, for the first branch that reaches it. To continue after every branch has finished, connect the **Done** port. The step on the Done edge runs once and sees the variables that every branch set.
+**Parallel / Sequential** runs two or more branches. In \`parallel\` mode they start together; in \`sequential\` mode one after another. Branches do not join: when two branches reach the same step, that step runs once, for the first branch that reaches it. To continue after every branch has finished, connect the **Done** port. The step on the Done edge runs once and sees the variables that every branch set. If a branch pauses (a User Task, a wait event or a long delay), the Done step does not run after the resume, and the run log shows a warning. Do not use a branch name **Done**: it turns the Done port off.
 
 ## Go To Activity
 
