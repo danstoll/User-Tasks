@@ -34,7 +34,7 @@
       "type": "modify_string",
       "label": "Uppercase Fruit",
       "position": { "x": 400, "y": 460 },
-      "config": { "operation": "upper", "input": "{{fruit}}", "output_var": "upper_fruit" }
+      "config": { "operation": "uppercase", "input": "{{fruit}}", "output_var": "upper_fruit" }
     },
     {
       "id": "n5",

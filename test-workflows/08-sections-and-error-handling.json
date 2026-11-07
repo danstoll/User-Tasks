@@ -29,7 +29,7 @@
       "type": "modify_string",
       "label": "Process String",
       "position": { "x": 100, "y": 340 },
-      "config": { "operation": "upper", "input": "{{input_data}}", "output_var": "processed" },
+      "config": { "operation": "uppercase", "input": "{{input_data}}", "output_var": "processed" },
       "sectionId": "sec1",
       "onError": "continue"
     },

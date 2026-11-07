@@ -48,7 +48,7 @@
       "type": "delay",
       "label": "Wait 1s",
       "position": { "x": 400, "y": 820 },
-      "config": { "seconds": "1" }
+      "config": { "duration": 1, "unit": "seconds" }
     },
     {
       "id": "n7",
@@ -73,9 +73,7 @@
     { "id": "e5", "source": "n4", "target": "n5", "label": "Branch A" },
     { "id": "e6", "source": "n4", "target": "n6", "label": "Branch B" },
     { "id": "e7", "source": "n4", "target": "n7", "label": "Branch C" },
-    { "id": "e8", "source": "n5", "target": "n8" },
-    { "id": "e9", "source": "n6", "target": "n8" },
-    { "id": "e10", "source": "n7", "target": "n8" }
+    { "id": "e8", "source": "n4", "target": "n8", "label": "Done" }
   ],
   "user_variables": [],
   "swimlanes": []

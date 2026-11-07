@@ -195,7 +195,7 @@
       "type": "format_date",
       "label": "Format Ship Date",
       "position": { "x": 200, "y": 2160 },
-      "config": { "input": "{{=ADD_DAYS(NOW(), 3)}}", "format": "dddd, MMMM D", "output_var": "ship_date" }
+      "config": { "date": "{{=ADD_DAYS(NOW(), 3)}}", "format": "short", "output_var": "ship_date" }
     },
     {
       "id": "n22",
@@ -216,7 +216,7 @@
       "type": "modify_string",
       "label": "Extract Order ID",
       "position": { "x": 200, "y": 2320 },
-      "config": { "operation": "upper", "input": "{{order.order_id}}", "output_var": "upper_order_id" }
+      "config": { "operation": "uppercase", "input": "{{order.order_id}}", "output_var": "upper_order_id" }
     },
     {
       "id": "n25",

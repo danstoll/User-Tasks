@@ -76,6 +76,6 @@ Optional drills via workflow variables: set `approval_mode` to `manual` **and** 
 - **Expressions**: functions resolve to expected values
 - **Error handling** (08): onError=continue doesn't stop the workflow
 - **User tasks** (07): workflow pauses, outcomes work, post-approval branching
-- **Parallel** (09): all branches execute, merge point reached
+- **Parallel** (09): all branches execute, then the `Done` edge runs once
 - **Decision table** (16): inputs resolve from variables, matched rule + outputs land in the variable picker and drive branching
 - **Data tables** (16): insert per loop iteration, get by row id, list with filter, update by matching a column value, delete; partial updates keep the other columns intact

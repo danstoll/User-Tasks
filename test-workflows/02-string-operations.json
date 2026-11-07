@@ -20,14 +20,14 @@
       "type": "modify_string",
       "label": "Uppercase",
       "position": { "x": 200, "y": 300 },
-      "config": { "operation": "upper", "input": "{{full_name}}", "output_var": "upper_name" }
+      "config": { "operation": "uppercase", "input": "{{full_name}}", "output_var": "upper_name" }
     },
     {
       "id": "n3",
       "type": "modify_string",
       "label": "Lowercase",
       "position": { "x": 600, "y": 300 },
-      "config": { "operation": "lower", "input": "{{full_name}}", "output_var": "lower_name" }
+      "config": { "operation": "lowercase", "input": "{{full_name}}", "output_var": "lower_name" }
     },
     {
       "id": "n4",

@@ -386,7 +386,7 @@
       "type": "format_date",
       "label": "Format Due Date",
       "position": { "x": 300, "y": 3460 },
-      "config": { "input": "{{=ADD_HOURS(NOW(), sla_hours)}}", "format": "datetime", "output_var": "due_date" }
+      "config": { "date": "{{=ADD_HOURS(NOW(), sla_hours)}}", "format": "datetime", "output_var": "due_date" }
     },
     {
       "id": "n39",

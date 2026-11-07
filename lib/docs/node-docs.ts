@@ -102,7 +102,7 @@ export const NODE_DOCS: Record<NodeType, NodeDoc> = {
     example: { target_node_id: '<node-id>', target_node_label: 'Manager approval' },
   },
   parallel: {
-    settings: '`branches` (two or more) and `mode`: `parallel` runs every branch at once, `sequential` one after another. The run continues after all branches finish.',
+    settings: '`branches` (two or more) and `mode`: `parallel` runs every branch at once, `sequential` one after another. Branches do not join: when two branches reach the same step, it runs once, for the first branch. To continue after every branch has finished, connect the `Done` port (an edge labelled `Done`).',
     example: { mode: 'parallel', branches: [{ label: 'Notify finance' }, { label: 'Update ERP' }] },
   },
 

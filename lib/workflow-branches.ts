@@ -49,7 +49,8 @@ export function getBranchLabels(node: Pick<WorkflowNode, 'type' | 'config'>): st
     case 'parallel': {
       const raw = (config.branches ?? []) as unknown[]
       const labels = raw.map((b) => (typeof b === 'string' ? b : labelOf(b, false))).filter(Boolean) as string[]
-      return labels.length > 0 ? labels : ['Branch 1', 'Branch 2']
+      // 'Done' runs once after every branch finishes (branches do not join).
+      return [...(labels.length > 0 ? labels : ['Branch 1', 'Branch 2']), 'Done']
     }
     case 'user_task': {
       const outcomes = (config.outcomes ?? []) as unknown[]

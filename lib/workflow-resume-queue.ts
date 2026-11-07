@@ -5,7 +5,7 @@
  * run id, and the queue worker resumes the run (kicked right away).
  *
  * enqueue_workflow is service-role only (20261118000000); as defence in depth a
- * resume job still carries an HMAC (keyed with the service-role key, which only the
+ * resume job still carries an HMAC (keyed with serverSigningKey(), which only the
  * server holds) over its tenant, workflow, run, event and payload. The worker
  * runs only jobs whose signature verifies, and only while the run is still
  * waiting on that event of that workflow and tenant.
@@ -13,7 +13,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { createServiceClient } from "@/lib/cron-auth"
-import { supabaseServiceRoleKey } from "@/lib/config/bootstrap"
+import { serverSigningKey } from "@/lib/server-signing-key"
 import { kickQueueProcessor } from "@/lib/process-queue"
 import { RunNotResumableError } from "@/lib/workflow-run-errors"
 
@@ -37,8 +37,8 @@ interface ResumeTarget {
 }
 
 function signingKey(): string {
-  const key = supabaseServiceRoleKey()
-  if (!key) throw new Error("SUPABASE_SERVICE_ROLE_KEY must be set to queue workflow resumes")
+  const key = serverSigningKey()
+  if (!key) throw new Error("Set ENCRYPTION_KEY (or SUPABASE_SERVICE_ROLE_KEY) to queue workflow resumes")
   return key
 }
 

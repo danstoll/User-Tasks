@@ -19,7 +19,7 @@
  */
 import { createHmac, timingSafeEqual } from "node:crypto"
 import type { SupabaseClient } from "@supabase/supabase-js"
-import { supabaseServiceRoleKey } from "@/lib/config/bootstrap"
+import { serverSigningKey } from "@/lib/server-signing-key"
 
 /** How a run was started (`{{workflow_started_via}}`). */
 export type StartedVia =
@@ -169,7 +169,7 @@ export function withQueuedInitiator(
 ): Record<string, unknown> {
   const out: Record<string, unknown> = { ...triggerData }
   delete out[QUEUED_INITIATOR_KEY]
-  const key = supabaseServiceRoleKey()
+  const key = serverSigningKey()
   if (!key) return out
   const userId = cleanUserId(initiator.userId)
   const via = isStartedVia(initiator.via) ? initiator.via : "system"
@@ -198,7 +198,7 @@ export function readQueuedInitiator(
   if (typeof raw.sig !== "string" || !/^[0-9a-f]{64}$/.test(raw.sig)) return null
   if (!isStartedVia(raw.via) || typeof raw.at !== "number" || !Number.isFinite(raw.at)) return null
   if (now - raw.at > MAX_SIGNATURE_AGE_MS || raw.at - now > 5 * 60 * 1000) return null
-  const key = supabaseServiceRoleKey()
+  const key = serverSigningKey()
   if (!key) return null
   const userId = cleanUserId(raw.user_id)
   const expected = Buffer.from(sign(key, { ...target, userId, via: raw.via, at: raw.at, payload: signedPayload(triggerData!) }), "hex")

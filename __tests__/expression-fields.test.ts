@@ -25,7 +25,7 @@ const CONVERTED: Array<{ node: string; key: string; bind: RegExp; resolved: stri
   { node: 'set_sla', key: 'amount', bind: /updateConfig\("amount", value\)/, resolved: 'slaAmount(config.amount' },
   { node: 'set_sla', key: 'sla_label', bind: /updateConfig\("sla_label", value\)/, resolved: 'resolveExpression(config.sla_label' },
   { node: 'json_build_object', key: 'fields[].value', bind: /updated\[i\] = \{ \.\.\.updated\[i\], value: value \}\s*updateConfig\(\"fields\"/, resolved: 'resolveExpression(pair.value' },
-  { node: 'json_build_array', key: 'items[].value', bind: /updated\[i\] = \{ value: value \}/, resolved: 'resolveExpression(item.value' },
+  { node: 'json_build_array', key: 'items[].value', bind: /updated\[i\] = \{ value: value \}/, resolved: 'resolveExpression(raw, ctx)' },
   { node: 'json_add_to_array', key: 'fields[].value', bind: /updated\[i\] = \{ \.\.\.updated\[i\], value: value \}\s*updateConfig\(\"fields\"/, resolved: 'resolveExpression(f.value' },
   { node: 'json_get_value', key: 'source', bind: /updateConfig\("source", value\)/, resolved: 'resolveExpression(config.source' },
   { node: 'read_csv / read_excel / file_to_base64 / read_file', key: 'file_url', bind: /updateConfig\("file_url", value\)/, resolved: 'resolveExpression(config.file_url' },

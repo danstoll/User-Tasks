@@ -2604,6 +2604,19 @@ async function executeNode(
           }
         }
       }
+      // Branches do not join where they meet. A "Done" edge continues the
+      // run once, after every branch has finished (like a loop's Done).
+      const branchKeys = new Set(branchLabels.map((l) => l.toLowerCase().trim()));
+      const doneEdges = branchKeys.has("done")
+        ? []
+        : outEdges.filter((e) => (e.label ?? "").toLowerCase().trim() === "done");
+      for (const edge of doneEdges) {
+        const nextNode = getNodeById(ctx, allNodes, edge.target);
+        if (nextNode) {
+          traceEdgeTraversal(ctx, edge, node, nextNode, "parallel_done");
+          await executeNode(nextNode, allNodes, allEdges, ctx);
+        }
+      }
       return;
     }
 
@@ -3020,19 +3033,23 @@ async function runNodeAction(
     case "middleware_received":
     case "schedule":
     case "webhook_received":
+    case "manual":
       return { triggered: true, task_id: taskId };
 
     // ─── Parallel / Sequential branching ───
     case "parallel": {
       const mode = config.mode ?? "parallel";
-      const branches = (config.branches ?? []) as {
-        label: string;
-        order: number;
-      }[];
+      // The editor stores branches as { label, order } objects; imported
+      // workflows often use plain strings. Accept both.
+      const branches = ((config.branches ?? []) as unknown[])
+        .map((b) =>
+          typeof b === "string" ? b : (b as { label?: unknown } | null)?.label,
+        )
+        .filter((label): label is string => typeof label === "string" && label !== "");
       return {
         mode,
         branch_count: branches.length,
-        branches: branches.map((b) => b.label),
+        branches,
       };
     }
 
@@ -4440,7 +4457,10 @@ async function runNodeAction(
     // Up to 30 s waits inline; longer delays pause the run and a queued
     // resume job continues it after the delay (see timedPause).
     case "delay": {
-      const ms = calculateDelay(config.duration, config.unit);
+      // `seconds` is an older shape: { seconds: n } means n seconds.
+      const ms = config.duration == null && config.seconds != null
+        ? calculateDelay(config.seconds, "seconds")
+        : calculateDelay(config.duration, config.unit);
       if (ms > ENGINE_LIMITS.inlineDelayMaxMs) {
         const resumeAt = new Date(Date.now() + ms);
         timedPause(node, ctx, resumeAt, {

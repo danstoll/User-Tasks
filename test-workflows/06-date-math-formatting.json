@@ -13,28 +13,28 @@
       "type": "format_date",
       "label": "Format Today",
       "position": { "x": 200, "y": 160 },
-      "config": { "input": "", "format": "YYYY-MM-DD", "output_var": "today" }
+      "config": { "format": "custom", "custom_format": "YYYY-MM-DD", "output_var": "today" }
     },
     {
       "id": "n2",
       "type": "date_math",
       "label": "Add 7 Days",
       "position": { "x": 400, "y": 160 },
-      "config": { "input": "{{today}}", "operation": "add", "amount": "7", "unit": "days", "output_var": "next_week" }
+      "config": { "date": "{{today}}", "operation": "add", "amount": "7", "unit": "days", "output_var": "next_week" }
     },
     {
       "id": "n3",
       "type": "date_math",
       "label": "Subtract 30 Days",
       "position": { "x": 600, "y": 160 },
-      "config": { "input": "{{today}}", "operation": "subtract", "amount": "30", "unit": "days", "output_var": "last_month" }
+      "config": { "date": "{{today}}", "operation": "subtract", "amount": "30", "unit": "days", "output_var": "last_month" }
     },
     {
       "id": "n4",
       "type": "format_date",
       "label": "Format Next Week",
       "position": { "x": 400, "y": 320 },
-      "config": { "input": "{{next_week}}", "format": "dddd, MMMM D, YYYY", "output_var": "next_week_formatted" }
+      "config": { "date": "{{next_week}}", "format": "short", "output_var": "next_week_formatted" }
     },
     {
       "id": "n5",

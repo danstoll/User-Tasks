@@ -28,7 +28,8 @@ export function handleMath(config: Record<string, any>, ctx: ExpressionContext):
 
 export function handleModifyString(config: Record<string, any>, ctx: ExpressionContext): { input: string; operation: string; result: string; variable: string } {
   const input = String(resolveExpression(config.input, ctx) ?? "")
-  const op = config.operation ?? "trim"
+  const OP_ALIASES: Record<string, string> = { upper: "uppercase", lower: "lowercase" }
+  const op = OP_ALIASES[config.operation] ?? config.operation ?? "trim"
   let result: string
   switch (op) {
     case "uppercase": result = input.toUpperCase(); break
@@ -72,7 +73,12 @@ export function handleFormatDate(config: Record<string, any>, ctx: ExpressionCon
   // No date at all means "now" — formatting the current time is the common intent.
   const dateStr = resolveExpression(config.date ?? config.input, ctx)
   const d = dateStr === undefined || dateStr === null || dateStr === "" ? new Date() : new Date(dateStr)
-  const fmt = config.format ?? "iso"
+  // A format made only of the custom tokens (YYYY, MM, DD, HH, mm, ss) and separators is a custom format.
+  const FORMAT_KEYWORDS = ["iso", "date", "time", "datetime", "short", "relative", "custom"]
+  const rawFmt = config.format ?? "iso"
+  const isTokenFormat = !FORMAT_KEYWORDS.includes(rawFmt) && /^(?:YYYY|MM|DD|HH|mm|ss|[\s\-\/:.,T])+$/.test(String(rawFmt))
+  const fmt = isTokenFormat ? "custom" : rawFmt
+  if (isTokenFormat) config = { ...config, custom_format: rawFmt }
   let result: string
   switch (fmt) {
     case "iso": result = d.toISOString(); break
@@ -104,7 +110,8 @@ export function handleFormatDate(config: Record<string, any>, ctx: ExpressionCon
 }
 
 export function handleDateMath(config: Record<string, any>, ctx: ExpressionContext): any {
-  const dateStr = resolveExpression(config.date, ctx)
+  // Like Format date: `input` is accepted for `date`.
+  const dateStr = resolveExpression(config.date ?? config.input, ctx)
   const d = new Date(dateStr)
   const op = config.operation ?? "add"
   if (op === "add" || op === "subtract") {
@@ -357,9 +364,11 @@ export function handleJsonBuildArray(config: Record<string, any>, ctx: Expressio
   const base: any[] = Array.isArray(existingVar) ? [...existingVar] : []
 
   // Add items from config
-  const items = (config.items ?? []) as { value: string }[]
+  // Items are { value } objects; a plain value is also accepted.
+  const items = (config.items ?? []) as unknown[]
   for (const item of items) {
-    let value: any = resolveExpression(item.value, ctx)
+    const raw = item !== null && typeof item === 'object' && 'value' in item ? (item as { value: unknown }).value : item
+    let value: any = typeof raw === 'string' ? resolveExpression(raw, ctx) : raw
     if (typeof value === 'string') {
       try { const parsed = JSON.parse(value); value = parsed } catch { /* keep as string */ }
     }
